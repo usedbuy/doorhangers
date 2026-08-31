@@ -526,13 +526,37 @@
             <input type="tel" id="phone" required>
           </div>
         </div>
-        <div class="form-field">
-          <label for="bizName">Business name</label>
-          <input type="text" id="bizName" required>
+        <div class="grid2">
+          <div class="form-field">
+            <label for="bizName">Business name</label>
+            <input type="text" id="bizName" required>
+          </div>
+          <div class="form-field">
+            <label for="bizWebsite">Business website <span style="font-weight:400;color:var(--ink-soft);">(optional)</span></label>
+            <input type="text" id="bizWebsite" placeholder="www.yourbusiness.com">
+          </div>
         </div>
         <div class="form-field">
-          <label for="bizAddress">Business address</label>
-          <input type="text" id="bizAddress" placeholder="Street, city, state, ZIP" required>
+          <label for="bizStreet">Business street address</label>
+          <input type="text" id="bizStreet" placeholder="123 Main St" required>
+        </div>
+        <div class="grid2">
+          <div class="form-field">
+            <label for="bizCity">City</label>
+            <input type="text" id="bizCity" required>
+          </div>
+          <div class="form-field">
+            <label for="bizState">State</label>
+            <input type="text" id="bizState" placeholder="e.g. OR" maxlength="2" style="text-transform:uppercase;" required>
+          </div>
+        </div>
+        <div class="form-field" style="max-width:200px;">
+          <label for="bizZip">ZIP code</label>
+          <input type="text" id="bizZip" inputmode="numeric" pattern="[0-9]{5}" placeholder="97204" required>
+        </div>
+        <div class="form-field">
+          <label for="designNotes">Anything we should know for your ad design? <span style="font-weight:400;color:var(--ink-soft);">(optional)</span></label>
+          <textarea id="designNotes" rows="3" placeholder="Logo files, brand colors, promo details, etc." style="width:100%;font-family:var(--sans);font-size:.95rem;padding:12px 14px;border-radius:var(--radius-md);border:1.5px solid var(--line);background:var(--paper-card);resize:vertical;"></textarea>
         </div>
         <p class="form-error" id="formError" style="display:none;"></p>
         <div class="form-actions">
@@ -600,7 +624,7 @@
   //    the secret lives only in the Worker, set via `wrangler secret put`)
   // ====================================================================
   const CONFIG = {
-    WORKER_BASE_URL: 'https://broken-grass-80ae.usedbuy.workers.dev',
+    WORKER_BASE_URL: 'https://doorstep-relay.YOUR-SUBDOMAIN.workers.dev',
     PAYPAL_CLIENT_ID: 'YOUR_PAYPAL_SANDBOX_OR_LIVE_CLIENT_ID',
     // If this Worker serves more than one site, give each copy of this file
     // a distinct label here — it's written onto the CRM record and the
@@ -806,7 +830,12 @@
       email: email,
       phone: document.getElementById('phone').value.trim(),
       businessName: document.getElementById('bizName').value.trim(),
-      businessAddress: document.getElementById('bizAddress').value.trim(),
+      businessWebsite: document.getElementById('bizWebsite').value.trim(),
+      businessStreet: document.getElementById('bizStreet').value.trim(),
+      businessCity: document.getElementById('bizCity').value.trim(),
+      businessState: document.getElementById('bizState').value.trim().toUpperCase(),
+      businessZip: document.getElementById('bizZip').value.trim(),
+      designNotes: document.getElementById('designNotes').value.trim(),
       source: CONFIG.SOURCE,
       radius: state.radius,
       size: state.size,
@@ -822,9 +851,10 @@
         if (!res.ok) throw new Error('The request could not be sent. Please try again.');
         return res.json();
       })
-      .then(() => {
+      .then((result) => {
+        const refLine = result.referenceId ? ` Your reference number is ${result.referenceId}.` : '';
         document.getElementById('confirmText').textContent =
-          `Thanks, ${name} — your ${state.radius}-mile, ${sizeMeta[state.size].label} campaign for ${state.qty.toLocaleString()} door hangers (est. $${price.toLocaleString()}) is on file. Complete payment below to start printing.`;
+          `Thanks, ${name} — your ${state.radius}-mile, ${sizeMeta[state.size].label} campaign for ${state.qty.toLocaleString()} door hangers (est. $${price.toLocaleString()}) is on file.${refLine} Complete payment below to start printing.`;
         this.style.display = 'none';
         document.getElementById('confirmBox').style.display = 'block';
         loadPaypalSdk().then(renderPaypalButtons).catch(() => {
